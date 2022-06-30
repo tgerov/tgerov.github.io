@@ -30,7 +30,7 @@ Prepare MariadB server for production.
 In this step we will set MariaDB root password, which will be required from SeaFile Server installation scripts.
 
 Here is an exampele:
-```bash
+```
 mysql_secure_installation
 
 NOTE: RUNNING ALL PARTS OF THIS SCRIPT IS RECOMMENDED FOR ALL MariaDB
