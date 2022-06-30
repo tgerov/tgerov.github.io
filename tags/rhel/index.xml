@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>rhel on /home/gerov</title><link>https://gerov.eu/tags/rhel/</link><description>Recent content in rhel on /home/gerov</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>Copyright 2022 Tsvetan Gerov | All Content CC-BY-SA</copyright><lastBuildDate>Sat, 12 Feb 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://gerov.eu/tags/rhel/index.xml" rel="self" type="application/rss+xml"/><item><title>Unlock LUKs encrypted root filesystem remotely via SSH (RHEL 8/CentOS 8)</title><link>https://gerov.eu/posts/unlock-luks-encrypted-fs-remotetly-via-ssh/</link><pubDate>Sat, 12 Feb 2022 00:00:00 +0000</pubDate><guid>https://gerov.eu/posts/unlock-luks-encrypted-fs-remotetly-via-ssh/</guid><description>Unlock LUKS encrypted root file system remotely via SSH</description><content>&lt;h2 id="intruduction">Intruduction&lt;/h2>
+&lt;p>In this short tutorial, I will show you how to unlock your luks encrypted root file system on RHEL 8 / CentOS 8, remotely via SSH. To accomplish this task, we will use 3rd party dracut module - dracut-sshd.&lt;/p>
+&lt;p>Before we begin, we will need some details for our system - Ethernet device, IP address, NETMASK and Gateway.&lt;/p>
+&lt;p>In this example my configuration is as follow:&lt;/p>
+&lt;p>IP: 192.168.0.77&lt;br>
+NETMASK: 255.255.0.0&lt;br>
+GATEWAY: 192.168.0.1&lt;br>
+Ethernet: eth0&lt;/p>
+&lt;h2 id="generate-ssh-key-pair">Generate SSH key pair&lt;/h2>
+&lt;p>We need to generate a public-private ssh keys and include them in initramfs.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>ssh-keygen -t rsa
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.0.77
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="install-dracut-sshd">Install dracut-sshd&lt;/h2>
+&lt;p>This Dracut module (dracut-sshd) integrates the OpenSSH sshd into the initramfs. It allows for remote unlocking of a fully encrypted root filesystem and remote access to the Dracut emergency shell (i.e. early userspace). [1]&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>dnf copr enable gsauthof/dracut-sshd
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>dnf install dracut-sshd
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="enable-dracut-network">Enable dracut Network&lt;/h2>
+&lt;p>Here, we add early network capabilities to initramfs.
+Update network configuration to match your requirements.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>cat &lt;span style="color:#e6db74">&amp;lt;&amp;lt;EOF &amp;gt;&amp;gt; /etc/dracut.conf.d/99-network.conf
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">kernel_cmdline=&amp;#34;ip=192.168.0.77::192.168.0.1:255.255.0.0:VerySecureVM:eth0:off&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">EOF&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Syntax is:&lt;/p>
+&lt;pre tabindex="0">&lt;code>ip&amp;lt;client-IP-number&amp;gt;:[&amp;lt;server-id&amp;gt;]:&amp;lt;gateway-IP-number&amp;gt;:&amp;lt;netmask&amp;gt;:&amp;lt;client-hostname&amp;gt;:&amp;lt;interface&amp;gt;:{dhcp|dhcp6|auto6|on|any|none|off}
+&lt;/code>&lt;/pre>&lt;h2 id="force-dracut-initram-regeneration">Force Dracut initram regeneration&lt;/h2>
+&lt;p>In order to include our SSH keys and dracut network configuration, we will force dracut to regenerate initramfs image.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>dracut -f
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="flush-dracut-network-configuration">Flush Dracut network configuration&lt;/h2>
+&lt;p>Since IP address configuration is set via kernel, NetworkManager will not load your configuration from real root filesystem. This will be a problem if you have IP aliasess, bonds, bridge, vlans &amp;amp; etc. configured on your real root.&lt;/p>
+&lt;p>If your system has one IP address, you can skip these steps.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>cat &lt;span style="color:#e6db74">&amp;lt;&amp;lt;EOF &amp;gt;&amp;gt; /etc/systemd/system/flush-dracut-network\@.service
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">[Unit]
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Description=Remove dracut&amp;#39;s network configuration for %I
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Before=network-pre.target
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Wants=network-pre.target
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">[Service]
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">ExecStartPre=/usr/sbin/ip address show %i
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">ExecStart=/usr/sbin/ip -statistics address flush dev %i
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">[Install]
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">WantedBy=default.target
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">EOF&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Enable systemd unit to flush dracut configuration on our ethernet interface.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>systemctl enable flush-dracut-network@eth0
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Reboot your machine and test : )&lt;/p>
+&lt;p>Once the initrd load and network is fired up, you should be able to login via SSH and unlock your encrypted root file system with single command - systemd-tty-ask-password-agent. Here is an example:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>ssh root@192.168.0.77
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>initramfs-ssh:/root# systemd-tty-ask-password-agent
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Please enter passphrase &lt;span style="color:#66d9ef">for&lt;/span> disk QEMU_HARDDISK &lt;span style="color:#f92672">(&lt;/span>luks-01a6fbf5-779e-47c0-b7bd-efca0252d5d9&lt;span style="color:#f92672">)&lt;/span>! ********
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>initramfs-ssh:/root# Connection to 192.168.0.77 closed by remote host.
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Connection to 192.168.0.77 closed.
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>References:&lt;br>
+[1] &lt;a href="https://github.com/gsauthof/dracut-sshd">https://github.com/gsauthof/dracut-sshd&lt;/a>&lt;br>
+[2] &lt;a href="https://access.redhat.com/solutions/3017441">https://access.redhat.com/solutions/3017441&lt;/a>&lt;br>
+[3] &lt;a href="https://unix.stackexchange.com/questions/506331/networkmanager-doesnt-change-ip-address-when-dracut-cmdline-provided-static-ip">https://unix.stackexchange.com/questions/506331/networkmanager-doesnt-change-ip-address-when-dracut-cmdline-provided-static-ip&lt;/a>&lt;br>
+[4] Photo: &lt;a href="https://unsplash.com/photos/SZ98vfIx0pw">Markus Winkler&lt;/a>&lt;/p></content></item><item><title>How to install GNS3 on RHEL 8 / CentOS 8</title><link>https://gerov.eu/posts/how-to-install-gns3-on-rhel-centos/</link><pubDate>Thu, 23 Apr 2020 12:13:39 +0300</pubDate><guid>https://gerov.eu/posts/how-to-install-gns3-on-rhel-centos/</guid><description>Install GNS3 on RHEL 8/CentOS 8 with Dynamips, VPCS and QEMU.</description><content>&lt;h2 id="what-is-gns3-">What is GNS3 ?&lt;/h2>
+&lt;p>Graphical Network Simulator-3 (shortened to GNS3) is a network software emulator first released in 2008.
+It allows the combination of virtual and real devices, used to simulate complex networks.
+It uses Dynamips emulation software to simulate Cisco IOS. &lt;a href="https://en.wikipedia.org/wiki/Graphical_Network_Simulator-3">Source - WikiPedia&lt;/a>.&lt;/p>
+&lt;h2 id="how-to-install-gns3">How to install GNS3&lt;/h2>
+&lt;p>I will show you how to install GNS3, dynamips, vpcs and ubridge from official GNS3 source code on RHEL 8 / CentOS 8.&lt;/p>
+&lt;p>The only difference in the installation process between RHEL and CentOS is &lt;a href="https://developers.redhat.com/blog/2018/11/15/introducing-codeready-linux-builder/">Code Ready Linux Builder&lt;/a> repository, which is called &lt;a href="https://wiki.centos.org/FAQ/CentOS8#Where_is_the_CentOS_8_codeready-developer_equivalent_repo.3F">PowerTools&lt;/a> on CentOS.&lt;/p>
+&lt;h3 id="enable-codeready-rhel-8-only">Enable CodeReady (RHEL 8 Only)&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># subscription-manager repos --enable codeready-builder-for-rhel-8-x86_64-rpms&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="enable-powertools-centos-8-only">Enable PowerTools (CentOS 8 Only)&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@centos ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># yum install dnf-plugins-core&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@centos ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># yum config-manager --set-enabled PowerTools&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="install-required-rpms">Install Required RPMs&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># yum install python3-devel python3-pip cmake make elfutils-libelf-devel libpcap-devel python3-pyqt5-sip python3-qt5 xterm&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># yum groupinstall &amp;#39;Development Tools&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="clone-the-needed-sources-for-gns3-gui-gns3-server-vpcs-dynamips-and-ubridge">Clone the needed sources for gns3-gui, gns3-server, vpcs, dynamips and ubridge&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cd /usr/local/src/&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh src&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># git clone https://github.com/GNS3/gns3-server.git&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh src&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># git clone https://github.com/GNS3/gns3-gui.git&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh src&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># git clone https://github.com/GNS3/vpcs.git&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh src&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># git clone https://github.com/GNS3/dynamips.git&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh src&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># git clone https://github.com/GNS3/ubridge.git&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="install-gns3-server">Install GNS3 Server&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cd /usr/local/src/gns3-server/&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh gns3-server&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># pip3 install -r requirements.txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh gns3-server&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># python3 setup.py install&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="install-gns3-gui">Install GNS3 Gui&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cd /usr/local/src/gns3-gui/&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh gns3-gui&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># pip3 install -r requirements.txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh gns3-gui&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># python3 setup.py install&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh gns3-gui&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cp resources/linux/applications/gns3.desktop /usr/share/applications/&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh gns3-gui&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cp -R resources/linux/icons/hicolor/ /usr/share/icons/&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="install-vpcs">Install VPCS&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cd /usr/local/src/vpcs/src&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh src&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># ./mk.sh&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh src&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cp vpcs /usr/local/bin/vpcs&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="install-dynamips">Install Dynamips&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cd /usr/local/src/dynamips/&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh dynamips&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># mkdir build &lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh dynamips&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cd build/&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh build&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cmake ..&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh build&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># make&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh build&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># make install&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="install-ubridge">Install Ubridge&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cd /usr/local/src/ubridge&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ubridge&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># make&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ubridge&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># make install&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now GNS3 will be listed in your applications.
+Optionally, libvirt and qemu-kvm can be installed and it will be possible to add virtual machines directly in GNS3 topology.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># yum install libvirt qemu-kvm&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Copyright 2021 Tsvetan Gerov | &lt;!-- raw HTML omitted -->CC BY-SA 2.0&lt;!-- raw HTML omitted -->&lt;/p></content></item></channel></rss>

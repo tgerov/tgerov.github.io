@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>linux on /home/gerov</title><link>https://gerov.eu/tags/linux/</link><description>Recent content in linux on /home/gerov</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>Copyright 2022 Tsvetan Gerov | All Content CC-BY-SA</copyright><lastBuildDate>Thu, 30 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://gerov.eu/tags/linux/index.xml" rel="self" type="application/rss+xml"/><item><title>How to install Seafile on Fedora</title><link>https://gerov.eu/posts/2022/how-to-install-seafile-on-fedora/</link><pubDate>Thu, 30 Jun 2022 00:00:00 +0000</pubDate><guid>https://gerov.eu/posts/2022/how-to-install-seafile-on-fedora/</guid><description>How to install Seafile Server 9 Community Edition with MySQL/MariaDB on Fedora, including SystemD Units, Nginx and Let&amp;rsquo; s Encrypt.</description><content>&lt;p>This tutorial is based on official SeaFile &lt;a href="https://manual.seafile.com/deploy/using_mysql/">documentation&lt;/a> and it&amp;rsquo;s adapted for &lt;a href="https://getfedora.org">Fedora 36&lt;/a>.&lt;/p>
+&lt;h1 id="install-mariadb-server">Install MariaDB Server&lt;/h1>
+&lt;p>Install MariaDB server via yum/dnf&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>dnf install mariadb-server
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Enable and start now MariaDB server&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>systemctl enable --now mariadb
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="secure-mariadb-server">Secure MariaDB Server&lt;/h1>
+&lt;p>Prepare MariadB server for production.
+In this step we will set MariaDB root password, which will be required from SeaFile Server installation scripts.&lt;/p>
+&lt;p>Here is an exampele:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>mysql_secure_installation
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>NOTE: RUNNING ALL PARTS OF THIS SCRIPT IS RECOMMENDED FOR ALL MariaDB
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> SERVERS IN PRODUCTION USE! PLEASE READ EACH STEP CAREFULLY!
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>In order to log into MariaDB to secure it, we&lt;span style="color:#e6db74">&amp;#39;ll need the current
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">password for the root user. If you&amp;#39;&lt;/span>ve just installed MariaDB, and
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>haven&lt;span style="color:#e6db74">&amp;#39;t set the root password yet, you should just press enter here.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Enter current password for root (enter for none):
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">OK, successfully used password, moving on...
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Setting the root password or using the unix_socket ensures that nobody
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">can log into the MariaDB root user without the proper authorisation.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">You already have your root account protected, so you can safely answer &amp;#39;&lt;/span>n&lt;span style="color:#e6db74">&amp;#39;.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Switch to unix_socket authentication [Y/n] n
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... skipping.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">You already have your root account protected, so you can safely answer &amp;#39;&lt;/span>n&lt;span style="color:#e6db74">&amp;#39;.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Change the root password? [Y/n] y
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">New password: [ENTER NEW ROOT PASSWORD HERE]
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Re-enter new password: [RE-ENTER NEW ROOT PASSWORD HERE]
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Password updated successfully!
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Reloading privilege tables..
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">By default, a MariaDB installation has an anonymous user, allowing anyone
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">to log into MariaDB without having to have a user account created for
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">them. This is intended only for testing, and to make the installation
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">go a bit smoother. You should remove them before moving into a
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">production environment.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Remove anonymous users? [Y/n] y
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Normally, root should only be allowed to connect from &amp;#39;&lt;/span>localhost&lt;span style="color:#e6db74">&amp;#39;. This
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">ensures that someone cannot guess at the root password from the network.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Disallow root login remotely? [Y/n] y
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">By default, MariaDB comes with a database named &amp;#39;&lt;/span>test&lt;span style="color:#e6db74">&amp;#39; that anyone can
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">access. This is also intended only for testing, and should be removed
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">before moving into a production environment.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Remove test database and access to it? [Y/n] y
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> - Dropping test database...
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> - Removing privileges on test database...
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Reloading the privilege tables will ensure that all changes made so far
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">will take effect immediately.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Reload privilege tables now? [Y/n] y
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Cleaning up...
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">All done! If you&amp;#39;&lt;/span>ve completed all of the above steps, your MariaDB
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>installation should now be secure.
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Thanks &lt;span style="color:#66d9ef">for&lt;/span> using MariaDB!
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="install-seafile-deps">Install Seafile Deps&lt;/h1>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>dnf install wget python3 python3-setuptools python3-pip python3-devel mariadb-devel gcc &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span>python3-pillow python3-pylibmc python3-jinja2 python3-sqlalchemy &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span>python3-pylibmc python3-ldap python3-mysqlclient python3-pycryptodomex &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span>memcached memcached-devel
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="install-python-modules">Install Python modules&lt;/h1>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>pip3 install captcha django-pylibmc django-simple-captcha
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="setup-seafile">Setup SeaFile&lt;/h1>
+&lt;p>Create SeaFile user with home directory /opt/seafile&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>adduser -b /opt seafile
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Change user to seafile&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>su - seafile
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Download the install package from the Seafile Download page.
+We use Seafile CE version 9.0.6 as an example in the rest of this manual.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>wget https://s3.eu-central-1.amazonaws.com/download.seadrive.org/seafile-server_9.0.6_x86-64.tar.gz
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Uncompress the package by using tar&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>tar xf seafile-server_9.0.6_x86-64.tar.gz
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Run the installation script&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>cd seafile-server-9.0.6/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>./setup-seafile-mysql.sh
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>You will be asked several questions, including MariaDB password.&lt;/p>
+&lt;p>Here is an example:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>./setup-seafile-mysql.sh
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Checking python on this machine ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-----------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>This script will guide you to setup your seafile server using MySQL.
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Make sure you have read seafile server manual at
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> https://download.seafile.com/published/seafile-manual/home.md
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Press ENTER to &lt;span style="color:#66d9ef">continue&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-----------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>What is the name of the server? It will be displayed on the client.
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">3&lt;/span> - &lt;span style="color:#ae81ff">15&lt;/span> letters or digits
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> server name &lt;span style="color:#f92672">]&lt;/span> fedora-cloud
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>What is the ip or domain of the server?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>For example: www.mycompany.com, 192.168.1.101
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> This server&lt;span style="color:#960050;background-color:#1e0010">&amp;#39;&lt;/span>s ip or domain &lt;span style="color:#f92672">]&lt;/span> fedora.cloud.local
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Which port &lt;span style="color:#66d9ef">do&lt;/span> you want to use &lt;span style="color:#66d9ef">for&lt;/span> the seafile fileserver?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> default &lt;span style="color:#e6db74">&amp;#34;8082&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Please choose a way to initialize seafile databases:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>1&lt;span style="color:#f92672">]&lt;/span> Create new ccnet/seafile/seahub databases
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>2&lt;span style="color:#f92672">]&lt;/span> Use existing ccnet/seafile/seahub databases
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span> or &lt;span style="color:#ae81ff">2&lt;/span> &lt;span style="color:#f92672">]&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>What is the host of mysql server?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> default &lt;span style="color:#e6db74">&amp;#34;localhost&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>What is the port of mysql server?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> default &lt;span style="color:#e6db74">&amp;#34;3306&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>What is the password of the mysql root user?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> root password &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>verifying password of user root ... &lt;span style="color:#66d9ef">done&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Enter the name &lt;span style="color:#66d9ef">for&lt;/span> mysql user of seafile. It would be created &lt;span style="color:#66d9ef">if&lt;/span> not exists.
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> default &lt;span style="color:#e6db74">&amp;#34;seafile&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Enter the password &lt;span style="color:#66d9ef">for&lt;/span> mysql user &lt;span style="color:#e6db74">&amp;#34;seafile&amp;#34;&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> password &lt;span style="color:#66d9ef">for&lt;/span> seafile &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Enter the database name &lt;span style="color:#66d9ef">for&lt;/span> ccnet-server:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> default &lt;span style="color:#e6db74">&amp;#34;ccnet-db&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Enter the database name &lt;span style="color:#66d9ef">for&lt;/span> seafile-server:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> default &lt;span style="color:#e6db74">&amp;#34;seafile-db&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Enter the database name &lt;span style="color:#66d9ef">for&lt;/span> seahub:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> default &lt;span style="color:#e6db74">&amp;#34;seahub-db&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>---------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>This is your configuration
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>---------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> server name: fedora-cloud
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> server ip/domain: fedora.cloud.local
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> seafile data dir: /opt/seafile/seafile-data
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> fileserver port: &lt;span style="color:#ae81ff">8082&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> database: create new
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ccnet database: ccnet-db
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> seafile database: seafile-db
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> seahub database: seahub-db
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> database user: seafile
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>---------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Press ENTER to &lt;span style="color:#66d9ef">continue&lt;/span>, or Ctrl-C to abort
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>---------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Generating ccnet configuration ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Generating seafile configuration ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">done&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Generating seahub configuration ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Now creating ccnet database tables ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Now creating seafile database tables ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Now creating seahub database tables ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>creating seafile-server-latest symbolic link ... &lt;span style="color:#66d9ef">done&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-----------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Your seafile server configuration has been finished successfully.
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-----------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>run seafile server: ./seafile.sh &lt;span style="color:#f92672">{&lt;/span> start | stop | restart &lt;span style="color:#f92672">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>run seahub server: ./seahub.sh &lt;span style="color:#f92672">{&lt;/span> start &amp;lt;port&amp;gt; | stop | restart &amp;lt;port&amp;gt; &lt;span style="color:#f92672">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-----------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>If you are behind a firewall, remember to allow input/output of these tcp ports:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-----------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>port of seafile fileserver: &lt;span style="color:#ae81ff">8082&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>port of seahub: &lt;span style="color:#ae81ff">8000&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>When problems occur, Refer to
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> https://download.seafile.com/published/seafile-manual/home.md
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">for&lt;/span> information.
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Start Seafile server via scripts and setup admin user&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>./seafile.sh start
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>./seahub.sh start
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Starting seahub at port &lt;span style="color:#ae81ff">8000&lt;/span> ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>It&lt;span style="color:#e6db74">&amp;#39;s the first time you start the seafile server. Now let&amp;#39;&lt;/span>s create the admin account
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>What is the email &lt;span style="color:#66d9ef">for&lt;/span> the admin account?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> admin email &lt;span style="color:#f92672">]&lt;/span> tg@local.local
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>What is the password &lt;span style="color:#66d9ef">for&lt;/span> the admin account?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> admin password &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Enter the password again:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> admin password again &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Successfully created seafile admin
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Stop SeaFile and SeaHub&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>./seafile.sh stop
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>./seahub.sh stop
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="create-systemd-units-to-start-seafile-at-boot">Create SystemD units to start Seafile at boot&lt;/h1>
+&lt;p>Note: Exit from user seafile, commands below requires root privileges.&lt;/p>
+&lt;p>Create SeaFile Unit&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>vi /etc/systemd/system/seafile.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The content of the file is:&lt;/p>
+&lt;pre tabindex="0">&lt;code>[Unit]
+Description=Seafile
+After=network.target mariadb.service
+[Service]
+Type=forking
+ExecStart=/opt/seafile/seafile-server-latest/seafile.sh start
+ExecStop=/opt/seafile/seafile-server-latest/seafile.sh stop
+LimitNOFILE=infinity
+User=seafile
+Group=seafile
+[Install]
+WantedBy=multi-user.target
+&lt;/code>&lt;/pre>&lt;p>Create SeaHub Unit:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>vi /etc/systemd/system/seahub.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The content of the file is:&lt;/p>
+&lt;pre tabindex="0">&lt;code>[Unit]
+Description=Seafile hub
+After=network.target seafile.service
+[Service]
+Type=forking
+ExecStart=/opt/seafile/seafile-server-latest/seahub.sh start
+ExecStop=/opt/seafile/seafile-server-latest/seahub.sh stop
+User=seafile
+Group=seafile
+[Install]
+WantedBy=multi-user.target
+&lt;/code>&lt;/pre>&lt;p>Enable and start seafile and seahub:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>systemctl enable --now seafile.service
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>systemctl enable --now seahub.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="setup-nginx-as-reverse-proxy">Setup Nginx as Reverse Proxy&lt;/h1>
+&lt;p>Install Nginx&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>dnf install nginx
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Enable and start Nginx service&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>systemctl enable --now nginx
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Allow HTTP (80/tcp) and HTTPS (443/tcp) in Firewall&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>firewall-cmd --add-service&lt;span style="color:#f92672">={&lt;/span>http,https&lt;span style="color:#f92672">}&lt;/span> --permanent
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>firewall-cmd --reload
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>If SELinux is enabled on your host, allow HTTPD scripts and modules to connect to the network.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>setsebool -P httpd_can_network_connect &lt;span style="color:#ae81ff">1&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Create Nginx config file for seafile domain:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>vi /etc/nginx/conf.d/seafile.conf
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Copy the following sample Nginx config file into the just created seafile.conf and modify the content to fit your needs:&lt;/p>
+&lt;pre tabindex="0">&lt;code>log_format seafileformat &amp;#39;$http_x_forwarded_for $remote_addr [$time_local] &amp;#34;$request&amp;#34; $status $body_bytes_sent &amp;#34;$http_referer&amp;#34; &amp;#34;$http_user_agent&amp;#34; $upstream_response_time&amp;#39;;
+server {
+listen 80;
+server_name seafile.example.com;
+proxy_set_header X-Forwarded-For $remote_addr;
+location / {
+proxy_pass http://127.0.0.1:8000;
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Host $server_name;
+proxy_read_timeout 1200s;
+# used for view/edit office file via Office Online Server
+client_max_body_size 0;
+access_log /var/log/nginx/seahub.access.log seafileformat;
+error_log /var/log/nginx/seahub.error.log;
+}
+location /seafhttp {
+rewrite ^/seafhttp(.*)$ $1 break;
+proxy_pass http://127.0.0.1:8082;
+client_max_body_size 0;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_connect_timeout 36000s;
+proxy_read_timeout 36000s;
+proxy_send_timeout 36000s;
+send_timeout 36000s;
+access_log /var/log/nginx/seafhttp.access.log seafileformat;
+error_log /var/log/nginx/seafhttp.error.log;
+}
+location /media {
+root /opt/seafile/seafile-server-latest/seahub;
+}
+}
+&lt;/code>&lt;/pre>&lt;p>Reload nginx configuration&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>systemctl reload nginx
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="issue-lets-encrypt-ssl">Issue Lets Encrypt SSL&lt;/h1>
+&lt;p>Install certbot:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>dnf install python3-certbot python3-certbot-nginx
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Issue LetsEncrypt SSL and auto deploy it in nginx:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>certbot --nginx
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>References: &lt;a href="https://manual.seafile.com/deploy/">SeaFile Deploy Manual&lt;/a>&lt;/p></content></item><item><title>Unlock LUKs encrypted root filesystem remotely via SSH (RHEL 8/CentOS 8)</title><link>https://gerov.eu/posts/unlock-luks-encrypted-fs-remotetly-via-ssh/</link><pubDate>Sat, 12 Feb 2022 00:00:00 +0000</pubDate><guid>https://gerov.eu/posts/unlock-luks-encrypted-fs-remotetly-via-ssh/</guid><description>Unlock LUKS encrypted root file system remotely via SSH</description><content>&lt;h2 id="intruduction">Intruduction&lt;/h2>
+&lt;p>In this short tutorial, I will show you how to unlock your luks encrypted root file system on RHEL 8 / CentOS 8, remotely via SSH. To accomplish this task, we will use 3rd party dracut module - dracut-sshd.&lt;/p>
+&lt;p>Before we begin, we will need some details for our system - Ethernet device, IP address, NETMASK and Gateway.&lt;/p>
+&lt;p>In this example my configuration is as follow:&lt;/p>
+&lt;p>IP: 192.168.0.77&lt;br>
+NETMASK: 255.255.0.0&lt;br>
+GATEWAY: 192.168.0.1&lt;br>
+Ethernet: eth0&lt;/p>
+&lt;h2 id="generate-ssh-key-pair">Generate SSH key pair&lt;/h2>
+&lt;p>We need to generate a public-private ssh keys and include them in initramfs.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>ssh-keygen -t rsa
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.0.77
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="install-dracut-sshd">Install dracut-sshd&lt;/h2>
+&lt;p>This Dracut module (dracut-sshd) integrates the OpenSSH sshd into the initramfs. It allows for remote unlocking of a fully encrypted root filesystem and remote access to the Dracut emergency shell (i.e. early userspace). [1]&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>dnf copr enable gsauthof/dracut-sshd
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>dnf install dracut-sshd
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="enable-dracut-network">Enable dracut Network&lt;/h2>
+&lt;p>Here, we add early network capabilities to initramfs.
+Update network configuration to match your requirements.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>cat &lt;span style="color:#e6db74">&amp;lt;&amp;lt;EOF &amp;gt;&amp;gt; /etc/dracut.conf.d/99-network.conf
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">kernel_cmdline=&amp;#34;ip=192.168.0.77::192.168.0.1:255.255.0.0:VerySecureVM:eth0:off&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">EOF&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Syntax is:&lt;/p>
+&lt;pre tabindex="0">&lt;code>ip&amp;lt;client-IP-number&amp;gt;:[&amp;lt;server-id&amp;gt;]:&amp;lt;gateway-IP-number&amp;gt;:&amp;lt;netmask&amp;gt;:&amp;lt;client-hostname&amp;gt;:&amp;lt;interface&amp;gt;:{dhcp|dhcp6|auto6|on|any|none|off}
+&lt;/code>&lt;/pre>&lt;h2 id="force-dracut-initram-regeneration">Force Dracut initram regeneration&lt;/h2>
+&lt;p>In order to include our SSH keys and dracut network configuration, we will force dracut to regenerate initramfs image.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>dracut -f
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="flush-dracut-network-configuration">Flush Dracut network configuration&lt;/h2>
+&lt;p>Since IP address configuration is set via kernel, NetworkManager will not load your configuration from real root filesystem. This will be a problem if you have IP aliasess, bonds, bridge, vlans &amp;amp; etc. configured on your real root.&lt;/p>
+&lt;p>If your system has one IP address, you can skip these steps.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>cat &lt;span style="color:#e6db74">&amp;lt;&amp;lt;EOF &amp;gt;&amp;gt; /etc/systemd/system/flush-dracut-network\@.service
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">[Unit]
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Description=Remove dracut&amp;#39;s network configuration for %I
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Before=network-pre.target
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Wants=network-pre.target
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">[Service]
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">ExecStartPre=/usr/sbin/ip address show %i
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">ExecStart=/usr/sbin/ip -statistics address flush dev %i
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">[Install]
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">WantedBy=default.target
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">EOF&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Enable systemd unit to flush dracut configuration on our ethernet interface.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>systemctl enable flush-dracut-network@eth0
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Reboot your machine and test : )&lt;/p>
+&lt;p>Once the initrd load and network is fired up, you should be able to login via SSH and unlock your encrypted root file system with single command - systemd-tty-ask-password-agent. Here is an example:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>ssh root@192.168.0.77
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>initramfs-ssh:/root# systemd-tty-ask-password-agent
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Please enter passphrase &lt;span style="color:#66d9ef">for&lt;/span> disk QEMU_HARDDISK &lt;span style="color:#f92672">(&lt;/span>luks-01a6fbf5-779e-47c0-b7bd-efca0252d5d9&lt;span style="color:#f92672">)&lt;/span>! ********
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>initramfs-ssh:/root# Connection to 192.168.0.77 closed by remote host.
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Connection to 192.168.0.77 closed.
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>References:&lt;br>
+[1] &lt;a href="https://github.com/gsauthof/dracut-sshd">https://github.com/gsauthof/dracut-sshd&lt;/a>&lt;br>
+[2] &lt;a href="https://access.redhat.com/solutions/3017441">https://access.redhat.com/solutions/3017441&lt;/a>&lt;br>
+[3] &lt;a href="https://unix.stackexchange.com/questions/506331/networkmanager-doesnt-change-ip-address-when-dracut-cmdline-provided-static-ip">https://unix.stackexchange.com/questions/506331/networkmanager-doesnt-change-ip-address-when-dracut-cmdline-provided-static-ip&lt;/a>&lt;br>
+[4] Photo: &lt;a href="https://unsplash.com/photos/SZ98vfIx0pw">Markus Winkler&lt;/a>&lt;/p></content></item><item><title>How To Use Traefik as a Reverse Proxy for Podman (rootless)</title><link>https://gerov.eu/posts/traefik-for-podman/</link><pubDate>Thu, 03 Feb 2022 10:45:58 +0200</pubDate><guid>https://gerov.eu/posts/traefik-for-podman/</guid><description>Use Traefik as Reverse Proxy for Podman rootless containers</description><content>&lt;h2 id="introduction">Introduction&lt;/h2>
+&lt;p>Traefik is a leading modern reverse proxy and load balancer that makes deploying microservices easy. Traefik integrates with your existing infrastructure components and configures itself automatically and dynamically. [1]&lt;/p>
+&lt;p>Podman is a daemonless, open source, Linux native tool designed to make it easy to find, run, build, share and deploy applications using Open Containers Initiative (OCI) Containers and Container Images. Podman provides a command line interface (CLI) familiar to anyone who has used the Docker Container Engine. Containers under the control of Podman can either be run by root or by a non-privileged user. [2]&lt;/p>
+&lt;p>In this tutorial I&amp;rsquo;m using Fedora 35 for host OS with enabled SELinux and Firewalld. This means that we will need to execute few commands with root to allow rootless container (traefik) to listen on privileged ports (80, 443). We also will enable LetsEncrypt and HTTPS redirect in Treafik.&lt;/p>
+&lt;h2 id="install-podman">Install podman&lt;/h2>
+&lt;p>You can install it using the following command:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>root# dnf install -y podman
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>After installation, run the hello world image to ensure everything is working:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>root# podman run hello-world
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="create-a-regualr-user-for-containers">Create a regualr user for containers&lt;/h2>
+&lt;p>Create a regular user or use existing one. In this tutorial I will use user &amp;ldquo;container&amp;rdquo; with UID 1000.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>root# useradd containers
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>root# passwd containers
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Note: We need to login via SSH or Console with the new user. You cannot use &amp;ldquo;su - user&amp;rdquo; as this does not create a proper user session and custom exports for DBUS are required. In this tutorial I will use ssh containers@localhost.&lt;/p>
+&lt;h2 id="allow-privileges-ports-binding-for-non-root-users">Allow privileges ports binding for non-root users&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>root# echo &lt;span style="color:#e6db74">&amp;#39;net.ipv4.ip_unprivileged_port_start=80&amp;#39;&lt;/span> &amp;gt;&amp;gt; /etc/sysctl.conf
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>root# sysctl -p
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="allow-port-80-and-443-in-firewalld">Allow port 80 and 443 in Firewalld&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>root# firewall-cmd --add-service&lt;span style="color:#f92672">={&lt;/span>http,https&lt;span style="color:#f92672">}&lt;/span> --permanent
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>root# firewall-cmd --reload
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="enable-lingering-for-user-container">Enable lingering for user container&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>root# loginctl enable-linger containers
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This allows users who are not logged in to run long-running services, otherwise containers will stop once you logout.&lt;/p>
+&lt;h2 id="enable-podmansocket">Enable Podman.socket&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ systemctl --user enable --now podman.socket
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This will create a podman socket in /run/user/1000/podman/podman.sock, where 1000 is your UID.&lt;/p>
+&lt;h2 id="create-a-traefik-container">Create a Traefik container&lt;/h2>
+&lt;h3 id="create-podman-netwok-web">Create podman netwok web&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ podman network create web
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="create-an-empty-acmejson-file-with-privileges-600">Create an empty acme.json file with privileges 600&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ touch acme.json
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>containers$ chmod &lt;span style="color:#ae81ff">0600&lt;/span> acme.json
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="run-traefik">Run Traefik&lt;/h3>
+&lt;p>Make sure that email is properly set, otherwise you will get an error.&lt;/p>
+&lt;p>We need to run this container with an SELinux context that allows it to talk the podman socket, otherwise SELinux will block traefik communitaction with the podman.socket.&lt;/p>
+&lt;p>If you don&amp;rsquo;t add security opt label, you will get a similar error in SELinux&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>type&lt;span style="color:#f92672">=&lt;/span>AVC msg&lt;span style="color:#f92672">=&lt;/span>audit&lt;span style="color:#f92672">(&lt;/span>1643875799.990:1912&lt;span style="color:#f92672">)&lt;/span>: avc: denied &lt;span style="color:#f92672">{&lt;/span> connectto &lt;span style="color:#f92672">}&lt;/span> &lt;span style="color:#66d9ef">for&lt;/span> pid&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">26594&lt;/span> comm&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;traefik&amp;#34;&lt;/span> path&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;/run/user/1000/podman/podman.sock&amp;#34;&lt;/span> scontext&lt;span style="color:#f92672">=&lt;/span>system_u:system_r:container_t:s0:c41,c864 tcontext&lt;span style="color:#f92672">=&lt;/span>unconfined_u:system_r:container_runtime_t:s0-s0:c0.c1023 tclass&lt;span style="color:#f92672">=&lt;/span>unix_stream_socket permissive&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">0&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="create-traefik-container">Create Traefik container&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ podman run --name&lt;span style="color:#f92672">=&lt;/span>traefik -d &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --security-opt label&lt;span style="color:#f92672">=&lt;/span>type:container_runtime_t &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -v /run/user/1000/podman/podman.sock:/var/run/docker.sock:z &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -v ./acme.json:/acme.json:z &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --net web &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -p 80:80 &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -p 443:443 &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --restart always &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> docker.io/library/traefik:latest &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --entrypoints.web.address&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;:80&amp;#34;&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --entrypoints.web.http.redirections.entryPoint.to&lt;span style="color:#f92672">=&lt;/span>websecure &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --entrypoints.web.http.redirections.entryPoint.scheme&lt;span style="color:#f92672">=&lt;/span>https &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --entrypoints.websecure.address&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;:443&amp;#34;&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --providers.docker&lt;span style="color:#f92672">=&lt;/span>true &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --certificatesresolvers.le.acme.email&lt;span style="color:#f92672">=&lt;/span>your@email.local &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --certificatesresolvers.le.acme.storage&lt;span style="color:#f92672">=&lt;/span>/acme.json &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --certificatesresolvers.le.acme.tlschallenge&lt;span style="color:#f92672">=&lt;/span>true
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="create-a-systemd-unit-for-the-traefik-container">Create a systemd unit for the traefik container&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ mkdir -p ~/.config/systemd/user/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>containers$ cd ~/.config/systemd/user/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>containers$ podman generate systemd -f -n traefik
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>containers$ systemctl --user enable container-traefik.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now, lets stop podman container and start it via systemd&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ podman stop traefik
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>containers$ systemctl --user start container-traefik.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>You can verify that the traefik is running with the one of the following commands:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ podman ps
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>759a25c8c203 docker.io/library/traefik:latest --entrypoints.web... &lt;span style="color:#ae81ff">2&lt;/span> minutes ago Up &lt;span style="color:#ae81ff">2&lt;/span> minutes ago 0.0.0.0:80-&amp;gt;80/tcp, 0.0.0.0:443-&amp;gt;443/tcp traefik
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>or&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ systemctl --user status container-traefik.service
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>● container-traefik.service - Podman container-traefik.service
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Loaded: loaded &lt;span style="color:#f92672">(&lt;/span>/home/containers/.config/systemd/user/container-traefik.service; enabled; vendor preset: disabled&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Active: active &lt;span style="color:#f92672">(&lt;/span>running&lt;span style="color:#f92672">)&lt;/span> since Thu 2022-02-03 07:39:02 UTC; 2min 48s ago
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Docs: man:podman-generate-systemd&lt;span style="color:#f92672">(&lt;/span>1&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Process: &lt;span style="color:#ae81ff">21755&lt;/span> ExecStart&lt;span style="color:#f92672">=&lt;/span>/usr/bin/podman start traefik &lt;span style="color:#f92672">(&lt;/span>code&lt;span style="color:#f92672">=&lt;/span>exited, status&lt;span style="color:#f92672">=&lt;/span>0/SUCCESS&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Main PID: &lt;span style="color:#ae81ff">21920&lt;/span> &lt;span style="color:#f92672">(&lt;/span>conmon&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Tasks: &lt;span style="color:#ae81ff">16&lt;/span> &lt;span style="color:#f92672">(&lt;/span>limit: 1112&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Memory: 30.4M
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CPU: 510ms
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ... cut
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="examples">Examples&lt;/h2>
+&lt;p>After configuring the traefik reverse proxy, we will create a few examples. Examples will not follow the best practices, they will be run only for test purpose, so no persistent volumes will be used.&lt;/p>
+&lt;p>In order for Traefik to route our traffic correctly, we will need a few things:&lt;/p>
+&lt;ul>
+&lt;li>Container should be in network &amp;ldquo;web&amp;rdquo;&lt;/li>
+&lt;li>Labels should be set&lt;/li>
+&lt;li>Port should be exposed&lt;/li>
+&lt;li>Traefik should known on which port to route traffic&lt;/li>
+&lt;/ul>
+&lt;h3 id="ghost-cms">Ghost CMS&lt;/h3>
+&lt;p>Our Ghost platform will run with the following host: ghost.podman.gerov.eu, so you should replace hostname in the example below:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ podman run -d --name ghost &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --network&lt;span style="color:#f92672">=&lt;/span>web &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.routers.ghost.rule&lt;span style="color:#f92672">=&lt;/span>Host&lt;span style="color:#ae81ff">\(\`&lt;/span>ghost.podman.gerov.eu&lt;span style="color:#ae81ff">\`\)&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.services.ghost.loadbalancer.server.port&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">2368&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.routers.ghost.tls.certresolver&lt;span style="color:#f92672">=&lt;/span>le &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.routers.ghost.tls&lt;span style="color:#f92672">=&lt;/span>true &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -e url&lt;span style="color:#f92672">=&lt;/span>https://ghost.podman.gerov.eu &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --expose&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">2368&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> docker.io/library/ghost:latest
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>We will wait a minute and test if Ghost is running over HTTPS with valid Let&amp;rsquo;s Encrypt certificate.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ curl -I https://ghost.podman.gerov.eu/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>HTTP/2 &lt;span style="color:#ae81ff">200&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>cache-control: public, max-age&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>content-type: text/html; charset&lt;span style="color:#f92672">=&lt;/span>utf-8
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>date: Thu, &lt;span style="color:#ae81ff">03&lt;/span> Feb &lt;span style="color:#ae81ff">2022&lt;/span> 07:58:54 GMT
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>etag: W/&lt;span style="color:#e6db74">&amp;#34;5eac-sKMD98knbLhfiGj86JrLrs+J4Ow&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>vary: Accept-Encoding
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>x-powered-by: Express
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>content-length: &lt;span style="color:#ae81ff">24236&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="php-74--apache">PHP 7.4 &amp;amp; Apache&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ podman run -d --name php74-apache &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --network&lt;span style="color:#f92672">=&lt;/span>web &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.routers.php74.rule&lt;span style="color:#f92672">=&lt;/span>Host&lt;span style="color:#ae81ff">\(\`&lt;/span>php.podman.gerov.eu&lt;span style="color:#ae81ff">\`\)&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.services.php74.loadbalancer.server.port&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">80&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.routers.php74.tls.certresolver&lt;span style="color:#f92672">=&lt;/span>le &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.routers.php74.tls&lt;span style="color:#f92672">=&lt;/span>true &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --expose&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">80&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> php:7.4-apache
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="references">References:&lt;/h2>
+&lt;p>[1] &lt;a href="https://traefik.io/traefik/">https://traefik.io/traefik/&lt;/a>&lt;br>
+[2] &lt;a href="https://docs.podman.io/en/latest/">https://docs.podman.io/en/latest/&lt;/a>&lt;br>
+[3] Photo: &lt;a href="https://unsplash.com/photos/dPgPoiUIiXk">Robin Pierre&lt;/a>&lt;/p></content></item><item><title>How to install GNS3 on Fedora</title><link>https://gerov.eu/posts/how-to-install-gns3-on-fedora/</link><pubDate>Thu, 18 Mar 2021 18:20:49 +0200</pubDate><guid>https://gerov.eu/posts/how-to-install-gns3-on-fedora/</guid><description>Install GNS3 on Fedora with Dynamips, VPCS and QEMU.</description><content>&lt;h2 id="what-is-gns3-">What is GNS3 ?&lt;/h2>
+&lt;p>Graphical Network Simulator-3 (shortened to GNS3) is a network software emulator first released in 2008.
+It allows the combination of virtual and real devices, used to simulate complex networks.
+It uses Dynamips emulation software to simulate Cisco IOS (&lt;a href="https://en.wikipedia.org/wiki/Graphical_Network_Simulator-3">WikiPedia&lt;/a>).&lt;/p>
+&lt;h2 id="how-to-install-gns3">How to install GNS3&lt;/h2>
+&lt;p>I will show you how to install GNS3, dynamips, vpcs and ubridge on Fedora 36/35/34.&lt;/p>
+&lt;h2 id="enable-rpmfusion-repositories">Enable RPMFusion repositories&lt;/h2>
+&lt;p>Note: Non-free RPMFusion repository is required for dynamips. If you don&amp;rsquo;t need it, you can skip this step.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span> $ sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-&lt;span style="color:#66d9ef">$(&lt;/span>rpm -E %fedora&lt;span style="color:#66d9ef">)&lt;/span>.noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-&lt;span style="color:#66d9ef">$(&lt;/span>rpm -E %fedora&lt;span style="color:#66d9ef">)&lt;/span>.noarch.rpm
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="enable-my-copr-repository-with-vpcs">Enable my copr repository with VPCS&lt;/h2>
+&lt;p>Note: My VPCS repository is required because VPCS is not available in official Fedora repositories. If you do not need VPCS, you can skip this step.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span> $ sudo dnf copr enable tgerov/vpcs
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="you-can-now-perform-the-actual-installation-of-gns3">You can now perform the actual installation of GNS3&lt;/h1>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span> $ sudo dnf install gns3-gui gns3-server dynamips vpcs ubridge
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now GNS3 will be listed in your applications.
+Optionally, libvirt and qemu-kvm can be installed and it will be possible to add virtual machines directly in GNS3 topology.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span> $ sudo dnf install libvirt qemu-kvm
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> $ sudo gpasswd -a &amp;lt;My-User&amp;gt; libvirt
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Copyright 2021 Tsvetan Gerov | &lt;!-- raw HTML omitted -->CC BY-SA 2.0&lt;!-- raw HTML omitted -->&lt;/p></content></item><item><title>How to install Veeam Agent on OpenVZ 7</title><link>https://gerov.eu/posts/openvz7-veeam-agent/</link><pubDate>Thu, 18 Mar 2021 17:56:35 +0200</pubDate><guid>https://gerov.eu/posts/openvz7-veeam-agent/</guid><description>Deploy Veeam Agent 5 on OpenVZ 7</description><content>&lt;h2 id="download-latest-el7-rpms-from-veeam-repositoryhttprepositoryveeamcombackuplinuxagentrpmel7x86_64">Download latest EL7 RPMs from Veeam &lt;a href="http://repository.veeam.com/backup/linux/agent/rpm/el/7/x86_64/">repository&lt;/a>.&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@openvz7 ~&lt;span style="color:#f92672">]&lt;/span> &lt;span style="color:#75715e"># wget http://repository.veeam.com/backup/linux/agent/rpm/el/7/x86_64/veeam-5.0.0.4318-1.el7.x86_64.rpm&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@openvz7 ~&lt;span style="color:#f92672">]&lt;/span> &lt;span style="color:#75715e"># wget http://repository.veeam.com/backup/linux/agent/rpm/el/7/x86_64/veeamsnap-5.0.0.4318-1.noarch.rpm&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="install-the-required-dependencies">Install the required dependencies&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@openvz7 ~&lt;span style="color:#f92672">]&lt;/span> &lt;span style="color:#75715e"># yum install dkms vzkernel-headers-$(uname -r) vzkernel-devel-$(uname -r)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="install-veeamsnap-and-wait-for-the-kernel-module-to-be-compiled">Install VeeamSnap and wait for the kernel module to be compiled&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@openvz7 ~&lt;span style="color:#f92672">]&lt;/span> &lt;span style="color:#75715e"># rpm -ivh veeamsnap-5.0.0.4318-1.noarch.rpm&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="load-veeamsnap-kernel-module">Load veeamsnap kernel module&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@openvz7 ~&lt;span style="color:#f92672">]&lt;/span> &lt;span style="color:#75715e"># modprobe veeamsnap&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="you-can-verify-that-the-module-is-lodaded-with-lsmod">You can verify that the module is lodaded with lsmod&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@openvz7 ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># lsmod | grep veeamsnap&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>veeamsnap &lt;span style="color:#ae81ff">179802&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="install-veeam-agent">Install Veeam Agent&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@openvz7 ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># rpm -ivh veeam-5.0.0.4318-1.el7.x86_64.rpm&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="verify-that-the-service-is-running">Verify that the service is running&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@openvz7 ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># systemctl status veeamservice&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>● veeamservice.service - Veeam Agent &lt;span style="color:#66d9ef">for&lt;/span> Linux service daemon
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Loaded: loaded &lt;span style="color:#f92672">(&lt;/span>/usr/lib/systemd/system/veeamservice.service; enabled; vendor preset: disabled&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Active: active &lt;span style="color:#f92672">(&lt;/span>running&lt;span style="color:#f92672">)&lt;/span> since Wed 2021-03-10 07:14:46 EST; 10s ago
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Process: &lt;span style="color:#ae81ff">521861&lt;/span> ExecStart&lt;span style="color:#f92672">=&lt;/span>/usr/sbin/veeamservice --daemonize --pidfile&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PIDFILE&lt;span style="color:#e6db74">}&lt;/span> &lt;span style="color:#f92672">(&lt;/span>code&lt;span style="color:#f92672">=&lt;/span>exited, status&lt;span style="color:#f92672">=&lt;/span>0/SUCCESS&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Main PID: &lt;span style="color:#ae81ff">521904&lt;/span> &lt;span style="color:#f92672">(&lt;/span>veeamservice&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Tasks: &lt;span style="color:#ae81ff">45&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CGroup: /system.slice/veeamservice.service
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> └─521904 /usr/sbin/veeamservice --pidfile /var/run/veeamservice.pid --daemon
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now, you can add your OpenVZ server in Veeam Backup and Replication.&lt;/p>
+&lt;p>Copyright 2021 Tsvetan Gerov | &lt;!-- raw HTML omitted -->CC BY-SA 2.0&lt;!-- raw HTML omitted -->&lt;/p></content></item><item><title>How to install GNS3 on RHEL 8 / CentOS 8</title><link>https://gerov.eu/posts/how-to-install-gns3-on-rhel-centos/</link><pubDate>Thu, 23 Apr 2020 12:13:39 +0300</pubDate><guid>https://gerov.eu/posts/how-to-install-gns3-on-rhel-centos/</guid><description>Install GNS3 on RHEL 8/CentOS 8 with Dynamips, VPCS and QEMU.</description><content>&lt;h2 id="what-is-gns3-">What is GNS3 ?&lt;/h2>
+&lt;p>Graphical Network Simulator-3 (shortened to GNS3) is a network software emulator first released in 2008.
+It allows the combination of virtual and real devices, used to simulate complex networks.
+It uses Dynamips emulation software to simulate Cisco IOS. &lt;a href="https://en.wikipedia.org/wiki/Graphical_Network_Simulator-3">Source - WikiPedia&lt;/a>.&lt;/p>
+&lt;h2 id="how-to-install-gns3">How to install GNS3&lt;/h2>
+&lt;p>I will show you how to install GNS3, dynamips, vpcs and ubridge from official GNS3 source code on RHEL 8 / CentOS 8.&lt;/p>
+&lt;p>The only difference in the installation process between RHEL and CentOS is &lt;a href="https://developers.redhat.com/blog/2018/11/15/introducing-codeready-linux-builder/">Code Ready Linux Builder&lt;/a> repository, which is called &lt;a href="https://wiki.centos.org/FAQ/CentOS8#Where_is_the_CentOS_8_codeready-developer_equivalent_repo.3F">PowerTools&lt;/a> on CentOS.&lt;/p>
+&lt;h3 id="enable-codeready-rhel-8-only">Enable CodeReady (RHEL 8 Only)&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># subscription-manager repos --enable codeready-builder-for-rhel-8-x86_64-rpms&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="enable-powertools-centos-8-only">Enable PowerTools (CentOS 8 Only)&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@centos ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># yum install dnf-plugins-core&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@centos ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># yum config-manager --set-enabled PowerTools&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="install-required-rpms">Install Required RPMs&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># yum install python3-devel python3-pip cmake make elfutils-libelf-devel libpcap-devel python3-pyqt5-sip python3-qt5 xterm&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># yum groupinstall &amp;#39;Development Tools&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="clone-the-needed-sources-for-gns3-gui-gns3-server-vpcs-dynamips-and-ubridge">Clone the needed sources for gns3-gui, gns3-server, vpcs, dynamips and ubridge&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cd /usr/local/src/&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh src&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># git clone https://github.com/GNS3/gns3-server.git&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh src&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># git clone https://github.com/GNS3/gns3-gui.git&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh src&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># git clone https://github.com/GNS3/vpcs.git&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh src&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># git clone https://github.com/GNS3/dynamips.git&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh src&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># git clone https://github.com/GNS3/ubridge.git&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="install-gns3-server">Install GNS3 Server&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cd /usr/local/src/gns3-server/&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh gns3-server&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># pip3 install -r requirements.txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh gns3-server&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># python3 setup.py install&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="install-gns3-gui">Install GNS3 Gui&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cd /usr/local/src/gns3-gui/&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh gns3-gui&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># pip3 install -r requirements.txt&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh gns3-gui&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># python3 setup.py install&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh gns3-gui&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cp resources/linux/applications/gns3.desktop /usr/share/applications/&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh gns3-gui&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cp -R resources/linux/icons/hicolor/ /usr/share/icons/&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="install-vpcs">Install VPCS&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cd /usr/local/src/vpcs/src&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh src&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># ./mk.sh&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh src&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cp vpcs /usr/local/bin/vpcs&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="install-dynamips">Install Dynamips&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cd /usr/local/src/dynamips/&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh dynamips&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># mkdir build &lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh dynamips&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cd build/&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh build&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cmake ..&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh build&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># make&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh build&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># make install&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="install-ubridge">Install Ubridge&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># cd /usr/local/src/ubridge&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ubridge&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># make&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ubridge&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># make install&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now GNS3 will be listed in your applications.
+Optionally, libvirt and qemu-kvm can be installed and it will be possible to add virtual machines directly in GNS3 topology.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>root@rh ~&lt;span style="color:#f92672">]&lt;/span>&lt;span style="color:#75715e"># yum install libvirt qemu-kvm&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Copyright 2021 Tsvetan Gerov | &lt;!-- raw HTML omitted -->CC BY-SA 2.0&lt;!-- raw HTML omitted -->&lt;/p></content></item></channel></rss>

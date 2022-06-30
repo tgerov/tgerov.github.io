@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>seafile on /home/gerov</title><link>https://gerov.eu/tags/seafile/</link><description>Recent content in seafile on /home/gerov</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>Copyright 2022 Tsvetan Gerov | All Content CC-BY-SA</copyright><lastBuildDate>Thu, 30 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://gerov.eu/tags/seafile/index.xml" rel="self" type="application/rss+xml"/><item><title>How to install Seafile on Fedora</title><link>https://gerov.eu/posts/2022/how-to-install-seafile-on-fedora/</link><pubDate>Thu, 30 Jun 2022 00:00:00 +0000</pubDate><guid>https://gerov.eu/posts/2022/how-to-install-seafile-on-fedora/</guid><description>How to install Seafile Server 9 Community Edition with MySQL/MariaDB on Fedora, including SystemD Units, Nginx and Let&amp;rsquo; s Encrypt.</description><content>&lt;p>This tutorial is based on official SeaFile &lt;a href="https://manual.seafile.com/deploy/using_mysql/">documentation&lt;/a> and it&amp;rsquo;s adapted for &lt;a href="https://getfedora.org">Fedora 36&lt;/a>.&lt;/p>
+&lt;h1 id="install-mariadb-server">Install MariaDB Server&lt;/h1>
+&lt;p>Install MariaDB server via yum/dnf&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>dnf install mariadb-server
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Enable and start now MariaDB server&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>systemctl enable --now mariadb
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="secure-mariadb-server">Secure MariaDB Server&lt;/h1>
+&lt;p>Prepare MariadB server for production.
+In this step we will set MariaDB root password, which will be required from SeaFile Server installation scripts.&lt;/p>
+&lt;p>Here is an exampele:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>mysql_secure_installation
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>NOTE: RUNNING ALL PARTS OF THIS SCRIPT IS RECOMMENDED FOR ALL MariaDB
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> SERVERS IN PRODUCTION USE! PLEASE READ EACH STEP CAREFULLY!
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>In order to log into MariaDB to secure it, we&lt;span style="color:#e6db74">&amp;#39;ll need the current
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">password for the root user. If you&amp;#39;&lt;/span>ve just installed MariaDB, and
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>haven&lt;span style="color:#e6db74">&amp;#39;t set the root password yet, you should just press enter here.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Enter current password for root (enter for none):
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">OK, successfully used password, moving on...
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Setting the root password or using the unix_socket ensures that nobody
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">can log into the MariaDB root user without the proper authorisation.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">You already have your root account protected, so you can safely answer &amp;#39;&lt;/span>n&lt;span style="color:#e6db74">&amp;#39;.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Switch to unix_socket authentication [Y/n] n
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... skipping.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">You already have your root account protected, so you can safely answer &amp;#39;&lt;/span>n&lt;span style="color:#e6db74">&amp;#39;.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Change the root password? [Y/n] y
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">New password: [ENTER NEW ROOT PASSWORD HERE]
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Re-enter new password: [RE-ENTER NEW ROOT PASSWORD HERE]
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Password updated successfully!
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Reloading privilege tables..
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">By default, a MariaDB installation has an anonymous user, allowing anyone
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">to log into MariaDB without having to have a user account created for
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">them. This is intended only for testing, and to make the installation
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">go a bit smoother. You should remove them before moving into a
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">production environment.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Remove anonymous users? [Y/n] y
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Normally, root should only be allowed to connect from &amp;#39;&lt;/span>localhost&lt;span style="color:#e6db74">&amp;#39;. This
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">ensures that someone cannot guess at the root password from the network.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Disallow root login remotely? [Y/n] y
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">By default, MariaDB comes with a database named &amp;#39;&lt;/span>test&lt;span style="color:#e6db74">&amp;#39; that anyone can
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">access. This is also intended only for testing, and should be removed
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">before moving into a production environment.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Remove test database and access to it? [Y/n] y
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> - Dropping test database...
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> - Removing privileges on test database...
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Reloading the privilege tables will ensure that all changes made so far
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">will take effect immediately.
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Reload privilege tables now? [Y/n] y
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Cleaning up...
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">All done! If you&amp;#39;&lt;/span>ve completed all of the above steps, your MariaDB
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>installation should now be secure.
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Thanks &lt;span style="color:#66d9ef">for&lt;/span> using MariaDB!
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="install-seafile-deps">Install Seafile Deps&lt;/h1>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>dnf install wget python3 python3-setuptools python3-pip python3-devel mariadb-devel gcc &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span>python3-pillow python3-pylibmc python3-jinja2 python3-sqlalchemy &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span>python3-pylibmc python3-ldap python3-mysqlclient python3-pycryptodomex &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span>memcached memcached-devel
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="install-python-modules">Install Python modules&lt;/h1>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>pip3 install captcha django-pylibmc django-simple-captcha
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="setup-seafile">Setup SeaFile&lt;/h1>
+&lt;p>Create SeaFile user with home directory /opt/seafile&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>adduser -b /opt seafile
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Change user to seafile&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>su - seafile
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Download the install package from the Seafile Download page.
+We use Seafile CE version 9.0.6 as an example in the rest of this manual.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>wget https://s3.eu-central-1.amazonaws.com/download.seadrive.org/seafile-server_9.0.6_x86-64.tar.gz
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Uncompress the package by using tar&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>tar xf seafile-server_9.0.6_x86-64.tar.gz
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Run the installation script&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>cd seafile-server-9.0.6/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>./setup-seafile-mysql.sh
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>You will be asked several questions, including MariaDB password.&lt;/p>
+&lt;p>Here is an example:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>./setup-seafile-mysql.sh
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Checking python on this machine ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-----------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>This script will guide you to setup your seafile server using MySQL.
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Make sure you have read seafile server manual at
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> https://download.seafile.com/published/seafile-manual/home.md
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Press ENTER to &lt;span style="color:#66d9ef">continue&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-----------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>What is the name of the server? It will be displayed on the client.
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">3&lt;/span> - &lt;span style="color:#ae81ff">15&lt;/span> letters or digits
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> server name &lt;span style="color:#f92672">]&lt;/span> fedora-cloud
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>What is the ip or domain of the server?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>For example: www.mycompany.com, 192.168.1.101
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> This server&lt;span style="color:#960050;background-color:#1e0010">&amp;#39;&lt;/span>s ip or domain &lt;span style="color:#f92672">]&lt;/span> fedora.cloud.local
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Which port &lt;span style="color:#66d9ef">do&lt;/span> you want to use &lt;span style="color:#66d9ef">for&lt;/span> the seafile fileserver?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> default &lt;span style="color:#e6db74">&amp;#34;8082&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Please choose a way to initialize seafile databases:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>1&lt;span style="color:#f92672">]&lt;/span> Create new ccnet/seafile/seahub databases
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>2&lt;span style="color:#f92672">]&lt;/span> Use existing ccnet/seafile/seahub databases
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span> or &lt;span style="color:#ae81ff">2&lt;/span> &lt;span style="color:#f92672">]&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>What is the host of mysql server?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> default &lt;span style="color:#e6db74">&amp;#34;localhost&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>What is the port of mysql server?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> default &lt;span style="color:#e6db74">&amp;#34;3306&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>What is the password of the mysql root user?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> root password &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>verifying password of user root ... &lt;span style="color:#66d9ef">done&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Enter the name &lt;span style="color:#66d9ef">for&lt;/span> mysql user of seafile. It would be created &lt;span style="color:#66d9ef">if&lt;/span> not exists.
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> default &lt;span style="color:#e6db74">&amp;#34;seafile&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Enter the password &lt;span style="color:#66d9ef">for&lt;/span> mysql user &lt;span style="color:#e6db74">&amp;#34;seafile&amp;#34;&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> password &lt;span style="color:#66d9ef">for&lt;/span> seafile &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Enter the database name &lt;span style="color:#66d9ef">for&lt;/span> ccnet-server:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> default &lt;span style="color:#e6db74">&amp;#34;ccnet-db&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Enter the database name &lt;span style="color:#66d9ef">for&lt;/span> seafile-server:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> default &lt;span style="color:#e6db74">&amp;#34;seafile-db&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Enter the database name &lt;span style="color:#66d9ef">for&lt;/span> seahub:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> default &lt;span style="color:#e6db74">&amp;#34;seahub-db&amp;#34;&lt;/span> &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>---------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>This is your configuration
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>---------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> server name: fedora-cloud
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> server ip/domain: fedora.cloud.local
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> seafile data dir: /opt/seafile/seafile-data
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> fileserver port: &lt;span style="color:#ae81ff">8082&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> database: create new
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ccnet database: ccnet-db
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> seafile database: seafile-db
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> seahub database: seahub-db
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> database user: seafile
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>---------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Press ENTER to &lt;span style="color:#66d9ef">continue&lt;/span>, or Ctrl-C to abort
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>---------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Generating ccnet configuration ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Generating seafile configuration ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">done&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Generating seahub configuration ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Now creating ccnet database tables ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Now creating seafile database tables ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Now creating seahub database tables ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>creating seafile-server-latest symbolic link ... &lt;span style="color:#66d9ef">done&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-----------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Your seafile server configuration has been finished successfully.
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-----------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>run seafile server: ./seafile.sh &lt;span style="color:#f92672">{&lt;/span> start | stop | restart &lt;span style="color:#f92672">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>run seahub server: ./seahub.sh &lt;span style="color:#f92672">{&lt;/span> start &amp;lt;port&amp;gt; | stop | restart &amp;lt;port&amp;gt; &lt;span style="color:#f92672">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-----------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>If you are behind a firewall, remember to allow input/output of these tcp ports:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>-----------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>port of seafile fileserver: &lt;span style="color:#ae81ff">8082&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>port of seahub: &lt;span style="color:#ae81ff">8000&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>When problems occur, Refer to
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> https://download.seafile.com/published/seafile-manual/home.md
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">for&lt;/span> information.
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Start Seafile server via scripts and setup admin user&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>./seafile.sh start
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>./seahub.sh start
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Starting seahub at port &lt;span style="color:#ae81ff">8000&lt;/span> ...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>It&lt;span style="color:#e6db74">&amp;#39;s the first time you start the seafile server. Now let&amp;#39;&lt;/span>s create the admin account
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>What is the email &lt;span style="color:#66d9ef">for&lt;/span> the admin account?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> admin email &lt;span style="color:#f92672">]&lt;/span> tg@local.local
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>What is the password &lt;span style="color:#66d9ef">for&lt;/span> the admin account?
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> admin password &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Enter the password again:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span> admin password again &lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Successfully created seafile admin
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>----------------------------------------
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Stop SeaFile and SeaHub&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>./seafile.sh stop
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>./seahub.sh stop
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="create-systemd-units-to-start-seafile-at-boot">Create SystemD units to start Seafile at boot&lt;/h1>
+&lt;p>Note: Exit from user seafile, commands below requires root privileges.&lt;/p>
+&lt;p>Create SeaFile Unit&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>vi /etc/systemd/system/seafile.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The content of the file is:&lt;/p>
+&lt;pre tabindex="0">&lt;code>[Unit]
+Description=Seafile
+After=network.target mariadb.service
+[Service]
+Type=forking
+ExecStart=/opt/seafile/seafile-server-latest/seafile.sh start
+ExecStop=/opt/seafile/seafile-server-latest/seafile.sh stop
+LimitNOFILE=infinity
+User=seafile
+Group=seafile
+[Install]
+WantedBy=multi-user.target
+&lt;/code>&lt;/pre>&lt;p>Create SeaHub Unit:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>vi /etc/systemd/system/seahub.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The content of the file is:&lt;/p>
+&lt;pre tabindex="0">&lt;code>[Unit]
+Description=Seafile hub
+After=network.target seafile.service
+[Service]
+Type=forking
+ExecStart=/opt/seafile/seafile-server-latest/seahub.sh start
+ExecStop=/opt/seafile/seafile-server-latest/seahub.sh stop
+User=seafile
+Group=seafile
+[Install]
+WantedBy=multi-user.target
+&lt;/code>&lt;/pre>&lt;p>Enable and start seafile and seahub:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>systemctl enable --now seafile.service
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>systemctl enable --now seahub.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="setup-nginx-as-reverse-proxy">Setup Nginx as Reverse Proxy&lt;/h1>
+&lt;p>Install Nginx&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>dnf install nginx
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Enable and start Nginx service&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>systemctl enable --now nginx
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Allow HTTP (80/tcp) and HTTPS (443/tcp) in Firewall&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>firewall-cmd --add-service&lt;span style="color:#f92672">={&lt;/span>http,https&lt;span style="color:#f92672">}&lt;/span> --permanent
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>firewall-cmd --reload
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>If SELinux is enabled on your host, allow HTTPD scripts and modules to connect to the network.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>setsebool -P httpd_can_network_connect &lt;span style="color:#ae81ff">1&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Create Nginx config file for seafile domain:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>vi /etc/nginx/conf.d/seafile.conf
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Copy the following sample Nginx config file into the just created seafile.conf and modify the content to fit your needs:&lt;/p>
+&lt;pre tabindex="0">&lt;code>log_format seafileformat &amp;#39;$http_x_forwarded_for $remote_addr [$time_local] &amp;#34;$request&amp;#34; $status $body_bytes_sent &amp;#34;$http_referer&amp;#34; &amp;#34;$http_user_agent&amp;#34; $upstream_response_time&amp;#39;;
+server {
+listen 80;
+server_name seafile.example.com;
+proxy_set_header X-Forwarded-For $remote_addr;
+location / {
+proxy_pass http://127.0.0.1:8000;
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Host $server_name;
+proxy_read_timeout 1200s;
+# used for view/edit office file via Office Online Server
+client_max_body_size 0;
+access_log /var/log/nginx/seahub.access.log seafileformat;
+error_log /var/log/nginx/seahub.error.log;
+}
+location /seafhttp {
+rewrite ^/seafhttp(.*)$ $1 break;
+proxy_pass http://127.0.0.1:8082;
+client_max_body_size 0;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_connect_timeout 36000s;
+proxy_read_timeout 36000s;
+proxy_send_timeout 36000s;
+send_timeout 36000s;
+access_log /var/log/nginx/seafhttp.access.log seafileformat;
+error_log /var/log/nginx/seafhttp.error.log;
+}
+location /media {
+root /opt/seafile/seafile-server-latest/seahub;
+}
+}
+&lt;/code>&lt;/pre>&lt;p>Reload nginx configuration&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>systemctl reload nginx
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="issue-lets-encrypt-ssl">Issue Lets Encrypt SSL&lt;/h1>
+&lt;p>Install certbot:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>dnf install python3-certbot python3-certbot-nginx
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Issue LetsEncrypt SSL and auto deploy it in nginx:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>certbot --nginx
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>References: &lt;a href="https://manual.seafile.com/deploy/">SeaFile Deploy Manual&lt;/a>&lt;/p></content></item></channel></rss>

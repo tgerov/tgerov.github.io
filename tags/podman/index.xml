@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>podman on /home/gerov</title><link>https://gerov.eu/tags/podman/</link><description>Recent content in podman on /home/gerov</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>Copyright 2022 Tsvetan Gerov | All Content CC-BY-SA</copyright><lastBuildDate>Thu, 03 Feb 2022 10:45:58 +0200</lastBuildDate><atom:link href="https://gerov.eu/tags/podman/index.xml" rel="self" type="application/rss+xml"/><item><title>How To Use Traefik as a Reverse Proxy for Podman (rootless)</title><link>https://gerov.eu/posts/traefik-for-podman/</link><pubDate>Thu, 03 Feb 2022 10:45:58 +0200</pubDate><guid>https://gerov.eu/posts/traefik-for-podman/</guid><description>Use Traefik as Reverse Proxy for Podman rootless containers</description><content>&lt;h2 id="introduction">Introduction&lt;/h2>
+&lt;p>Traefik is a leading modern reverse proxy and load balancer that makes deploying microservices easy. Traefik integrates with your existing infrastructure components and configures itself automatically and dynamically. [1]&lt;/p>
+&lt;p>Podman is a daemonless, open source, Linux native tool designed to make it easy to find, run, build, share and deploy applications using Open Containers Initiative (OCI) Containers and Container Images. Podman provides a command line interface (CLI) familiar to anyone who has used the Docker Container Engine. Containers under the control of Podman can either be run by root or by a non-privileged user. [2]&lt;/p>
+&lt;p>In this tutorial I&amp;rsquo;m using Fedora 35 for host OS with enabled SELinux and Firewalld. This means that we will need to execute few commands with root to allow rootless container (traefik) to listen on privileged ports (80, 443). We also will enable LetsEncrypt and HTTPS redirect in Treafik.&lt;/p>
+&lt;h2 id="install-podman">Install podman&lt;/h2>
+&lt;p>You can install it using the following command:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>root# dnf install -y podman
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>After installation, run the hello world image to ensure everything is working:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>root# podman run hello-world
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="create-a-regualr-user-for-containers">Create a regualr user for containers&lt;/h2>
+&lt;p>Create a regular user or use existing one. In this tutorial I will use user &amp;ldquo;container&amp;rdquo; with UID 1000.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>root# useradd containers
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>root# passwd containers
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Note: We need to login via SSH or Console with the new user. You cannot use &amp;ldquo;su - user&amp;rdquo; as this does not create a proper user session and custom exports for DBUS are required. In this tutorial I will use ssh containers@localhost.&lt;/p>
+&lt;h2 id="allow-privileges-ports-binding-for-non-root-users">Allow privileges ports binding for non-root users&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>root# echo &lt;span style="color:#e6db74">&amp;#39;net.ipv4.ip_unprivileged_port_start=80&amp;#39;&lt;/span> &amp;gt;&amp;gt; /etc/sysctl.conf
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>root# sysctl -p
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="allow-port-80-and-443-in-firewalld">Allow port 80 and 443 in Firewalld&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>root# firewall-cmd --add-service&lt;span style="color:#f92672">={&lt;/span>http,https&lt;span style="color:#f92672">}&lt;/span> --permanent
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>root# firewall-cmd --reload
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="enable-lingering-for-user-container">Enable lingering for user container&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>root# loginctl enable-linger containers
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This allows users who are not logged in to run long-running services, otherwise containers will stop once you logout.&lt;/p>
+&lt;h2 id="enable-podmansocket">Enable Podman.socket&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ systemctl --user enable --now podman.socket
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This will create a podman socket in /run/user/1000/podman/podman.sock, where 1000 is your UID.&lt;/p>
+&lt;h2 id="create-a-traefik-container">Create a Traefik container&lt;/h2>
+&lt;h3 id="create-podman-netwok-web">Create podman netwok web&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ podman network create web
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="create-an-empty-acmejson-file-with-privileges-600">Create an empty acme.json file with privileges 600&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ touch acme.json
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>containers$ chmod &lt;span style="color:#ae81ff">0600&lt;/span> acme.json
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="run-traefik">Run Traefik&lt;/h3>
+&lt;p>Make sure that email is properly set, otherwise you will get an error.&lt;/p>
+&lt;p>We need to run this container with an SELinux context that allows it to talk the podman socket, otherwise SELinux will block traefik communitaction with the podman.socket.&lt;/p>
+&lt;p>If you don&amp;rsquo;t add security opt label, you will get a similar error in SELinux&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>type&lt;span style="color:#f92672">=&lt;/span>AVC msg&lt;span style="color:#f92672">=&lt;/span>audit&lt;span style="color:#f92672">(&lt;/span>1643875799.990:1912&lt;span style="color:#f92672">)&lt;/span>: avc: denied &lt;span style="color:#f92672">{&lt;/span> connectto &lt;span style="color:#f92672">}&lt;/span> &lt;span style="color:#66d9ef">for&lt;/span> pid&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">26594&lt;/span> comm&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;traefik&amp;#34;&lt;/span> path&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;/run/user/1000/podman/podman.sock&amp;#34;&lt;/span> scontext&lt;span style="color:#f92672">=&lt;/span>system_u:system_r:container_t:s0:c41,c864 tcontext&lt;span style="color:#f92672">=&lt;/span>unconfined_u:system_r:container_runtime_t:s0-s0:c0.c1023 tclass&lt;span style="color:#f92672">=&lt;/span>unix_stream_socket permissive&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">0&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="create-traefik-container">Create Traefik container&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ podman run --name&lt;span style="color:#f92672">=&lt;/span>traefik -d &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --security-opt label&lt;span style="color:#f92672">=&lt;/span>type:container_runtime_t &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -v /run/user/1000/podman/podman.sock:/var/run/docker.sock:z &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -v ./acme.json:/acme.json:z &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --net web &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -p 80:80 &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -p 443:443 &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --restart always &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> docker.io/library/traefik:latest &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --entrypoints.web.address&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;:80&amp;#34;&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --entrypoints.web.http.redirections.entryPoint.to&lt;span style="color:#f92672">=&lt;/span>websecure &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --entrypoints.web.http.redirections.entryPoint.scheme&lt;span style="color:#f92672">=&lt;/span>https &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --entrypoints.websecure.address&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;:443&amp;#34;&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --providers.docker&lt;span style="color:#f92672">=&lt;/span>true &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --certificatesresolvers.le.acme.email&lt;span style="color:#f92672">=&lt;/span>your@email.local &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --certificatesresolvers.le.acme.storage&lt;span style="color:#f92672">=&lt;/span>/acme.json &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --certificatesresolvers.le.acme.tlschallenge&lt;span style="color:#f92672">=&lt;/span>true
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="create-a-systemd-unit-for-the-traefik-container">Create a systemd unit for the traefik container&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ mkdir -p ~/.config/systemd/user/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>containers$ cd ~/.config/systemd/user/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>containers$ podman generate systemd -f -n traefik
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>containers$ systemctl --user enable container-traefik.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now, lets stop podman container and start it via systemd&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ podman stop traefik
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>containers$ systemctl --user start container-traefik.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>You can verify that the traefik is running with the one of the following commands:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ podman ps
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>759a25c8c203 docker.io/library/traefik:latest --entrypoints.web... &lt;span style="color:#ae81ff">2&lt;/span> minutes ago Up &lt;span style="color:#ae81ff">2&lt;/span> minutes ago 0.0.0.0:80-&amp;gt;80/tcp, 0.0.0.0:443-&amp;gt;443/tcp traefik
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>or&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ systemctl --user status container-traefik.service
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>● container-traefik.service - Podman container-traefik.service
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Loaded: loaded &lt;span style="color:#f92672">(&lt;/span>/home/containers/.config/systemd/user/container-traefik.service; enabled; vendor preset: disabled&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Active: active &lt;span style="color:#f92672">(&lt;/span>running&lt;span style="color:#f92672">)&lt;/span> since Thu 2022-02-03 07:39:02 UTC; 2min 48s ago
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Docs: man:podman-generate-systemd&lt;span style="color:#f92672">(&lt;/span>1&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Process: &lt;span style="color:#ae81ff">21755&lt;/span> ExecStart&lt;span style="color:#f92672">=&lt;/span>/usr/bin/podman start traefik &lt;span style="color:#f92672">(&lt;/span>code&lt;span style="color:#f92672">=&lt;/span>exited, status&lt;span style="color:#f92672">=&lt;/span>0/SUCCESS&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Main PID: &lt;span style="color:#ae81ff">21920&lt;/span> &lt;span style="color:#f92672">(&lt;/span>conmon&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Tasks: &lt;span style="color:#ae81ff">16&lt;/span> &lt;span style="color:#f92672">(&lt;/span>limit: 1112&lt;span style="color:#f92672">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Memory: 30.4M
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> CPU: 510ms
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ... cut
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="examples">Examples&lt;/h2>
+&lt;p>After configuring the traefik reverse proxy, we will create a few examples. Examples will not follow the best practices, they will be run only for test purpose, so no persistent volumes will be used.&lt;/p>
+&lt;p>In order for Traefik to route our traffic correctly, we will need a few things:&lt;/p>
+&lt;ul>
+&lt;li>Container should be in network &amp;ldquo;web&amp;rdquo;&lt;/li>
+&lt;li>Labels should be set&lt;/li>
+&lt;li>Port should be exposed&lt;/li>
+&lt;li>Traefik should known on which port to route traffic&lt;/li>
+&lt;/ul>
+&lt;h3 id="ghost-cms">Ghost CMS&lt;/h3>
+&lt;p>Our Ghost platform will run with the following host: ghost.podman.gerov.eu, so you should replace hostname in the example below:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ podman run -d --name ghost &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --network&lt;span style="color:#f92672">=&lt;/span>web &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.routers.ghost.rule&lt;span style="color:#f92672">=&lt;/span>Host&lt;span style="color:#ae81ff">\(\`&lt;/span>ghost.podman.gerov.eu&lt;span style="color:#ae81ff">\`\)&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.services.ghost.loadbalancer.server.port&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">2368&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.routers.ghost.tls.certresolver&lt;span style="color:#f92672">=&lt;/span>le &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.routers.ghost.tls&lt;span style="color:#f92672">=&lt;/span>true &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -e url&lt;span style="color:#f92672">=&lt;/span>https://ghost.podman.gerov.eu &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --expose&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">2368&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> docker.io/library/ghost:latest
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>We will wait a minute and test if Ghost is running over HTTPS with valid Let&amp;rsquo;s Encrypt certificate.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ curl -I https://ghost.podman.gerov.eu/
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>HTTP/2 &lt;span style="color:#ae81ff">200&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>cache-control: public, max-age&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>content-type: text/html; charset&lt;span style="color:#f92672">=&lt;/span>utf-8
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>date: Thu, &lt;span style="color:#ae81ff">03&lt;/span> Feb &lt;span style="color:#ae81ff">2022&lt;/span> 07:58:54 GMT
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>etag: W/&lt;span style="color:#e6db74">&amp;#34;5eac-sKMD98knbLhfiGj86JrLrs+J4Ow&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>vary: Accept-Encoding
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>x-powered-by: Express
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>content-length: &lt;span style="color:#ae81ff">24236&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="php-74--apache">PHP 7.4 &amp;amp; Apache&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>containers$ podman run -d --name php74-apache &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --network&lt;span style="color:#f92672">=&lt;/span>web &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.routers.php74.rule&lt;span style="color:#f92672">=&lt;/span>Host&lt;span style="color:#ae81ff">\(\`&lt;/span>php.podman.gerov.eu&lt;span style="color:#ae81ff">\`\)&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.services.php74.loadbalancer.server.port&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">80&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.routers.php74.tls.certresolver&lt;span style="color:#f92672">=&lt;/span>le &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> -l traefik.http.routers.php74.tls&lt;span style="color:#f92672">=&lt;/span>true &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> --expose&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">80&lt;/span> &lt;span style="color:#ae81ff">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span> php:7.4-apache
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="references">References:&lt;/h2>
+&lt;p>[1] &lt;a href="https://traefik.io/traefik/">https://traefik.io/traefik/&lt;/a>&lt;br>
+[2] &lt;a href="https://docs.podman.io/en/latest/">https://docs.podman.io/en/latest/&lt;/a>&lt;br>
+[3] Photo: &lt;a href="https://unsplash.com/photos/dPgPoiUIiXk">Robin Pierre&lt;/a>&lt;/p></content></item></channel></rss>
