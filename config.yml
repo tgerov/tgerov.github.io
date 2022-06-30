@@ -1,0 +1,48 @@
+baseurl: https://gerov.eu
+languageCode: en-us
+theme: terminal
+paginate: 5
+params:
+  contentTypeName: posts
+  themeColor: green
+  showMenuItems: 5
+  showLanguageSelector: false
+  fullWidthTheme: false
+  centerTheme: true
+  autoCover: true
+  showLastUpdated: true
+  readingTime: true
+  twitter:
+    creator: Tsvetan Gerov
+    site: ''
+languages:
+  en:
+    languageName: English
+    title: /home/gerov
+    subtitle: Open Source
+    owner: Tsvetan Gerov
+    keywords: ''
+    copyright: Copyright 2022 Tsvetan Gerov | All Content CC-BY-SA
+    menuMore: Show more
+    readMore: Read more
+    readOtherPosts: Read other posts
+    newerPosts: Newer posts
+    olderPosts: Older posts
+    missingContentMessage: Page not found...
+    missingBackButtonLabel: Back to home page
+    params:
+      logo:
+        logoText: "\U0001F577️ /home/gerov"
+        logoHomeLink: /
+    menu:
+      main:
+        - identifier: about
+          name: About
+          url: /about
+        - identifier: posts
+          name: Posts
+          url: /posts
+        - identifier: tags
+          name: Tags
+          url: /tags
+
