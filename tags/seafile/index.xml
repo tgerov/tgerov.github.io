@@ -8,74 +8,54 @@
 &lt;p>Prepare MariadB server for production.
 In this step we will set MariaDB root password, which will be required from SeaFile Server installation scripts.&lt;/p>
 &lt;p>Here is an exampele:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>mysql_secure_installation
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>NOTE: RUNNING ALL PARTS OF THIS SCRIPT IS RECOMMENDED FOR ALL MariaDB
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> SERVERS IN PRODUCTION USE! PLEASE READ EACH STEP CAREFULLY!
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>In order to log into MariaDB to secure it, we&lt;span style="color:#e6db74">&amp;#39;ll need the current
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">password for the root user. If you&amp;#39;&lt;/span>ve just installed MariaDB, and
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>haven&lt;span style="color:#e6db74">&amp;#39;t set the root password yet, you should just press enter here.
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Enter current password for root (enter for none):
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">OK, successfully used password, moving on...
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Setting the root password or using the unix_socket ensures that nobody
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">can log into the MariaDB root user without the proper authorisation.
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">You already have your root account protected, so you can safely answer &amp;#39;&lt;/span>n&lt;span style="color:#e6db74">&amp;#39;.
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Switch to unix_socket authentication [Y/n] n
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... skipping.
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">You already have your root account protected, so you can safely answer &amp;#39;&lt;/span>n&lt;span style="color:#e6db74">&amp;#39;.
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Change the root password? [Y/n] y
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">New password: [ENTER NEW ROOT PASSWORD HERE]
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Re-enter new password: [RE-ENTER NEW ROOT PASSWORD HERE]
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Password updated successfully!
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Reloading privilege tables..
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">By default, a MariaDB installation has an anonymous user, allowing anyone
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">to log into MariaDB without having to have a user account created for
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">them. This is intended only for testing, and to make the installation
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">go a bit smoother. You should remove them before moving into a
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">production environment.
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Remove anonymous users? [Y/n] y
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Normally, root should only be allowed to connect from &amp;#39;&lt;/span>localhost&lt;span style="color:#e6db74">&amp;#39;. This
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">ensures that someone cannot guess at the root password from the network.
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Disallow root login remotely? [Y/n] y
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">By default, MariaDB comes with a database named &amp;#39;&lt;/span>test&lt;span style="color:#e6db74">&amp;#39; that anyone can
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">access. This is also intended only for testing, and should be removed
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">before moving into a production environment.
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Remove test database and access to it? [Y/n] y
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> - Dropping test database...
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> - Removing privileges on test database...
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Reloading the privilege tables will ensure that all changes made so far
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">will take effect immediately.
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Reload privilege tables now? [Y/n] y
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> ... Success!
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">Cleaning up...
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">All done! If you&amp;#39;&lt;/span>ve completed all of the above steps, your MariaDB
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>installation should now be secure.
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Thanks &lt;span style="color:#66d9ef">for&lt;/span> using MariaDB!
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="install-seafile-deps">Install Seafile Deps&lt;/h1>
+&lt;pre tabindex="0">&lt;code>mysql_secure_installation
+NOTE: RUNNING ALL PARTS OF THIS SCRIPT IS RECOMMENDED FOR ALL MariaDB
+SERVERS IN PRODUCTION USE! PLEASE READ EACH STEP CAREFULLY!
+In order to log into MariaDB to secure it, we&amp;#39;ll need the current
+password for the root user. If you&amp;#39;ve just installed MariaDB, and
+haven&amp;#39;t set the root password yet, you should just press enter here.
+Enter current password for root (enter for none):
+OK, successfully used password, moving on...
+Setting the root password or using the unix_socket ensures that nobody
+can log into the MariaDB root user without the proper authorisation.
+You already have your root account protected, so you can safely answer &amp;#39;n&amp;#39;.
+Switch to unix_socket authentication [Y/n] n
+... skipping.
+You already have your root account protected, so you can safely answer &amp;#39;n&amp;#39;.
+Change the root password? [Y/n] y
+New password: [ENTER NEW ROOT PASSWORD HERE]
+Re-enter new password: [RE-ENTER NEW ROOT PASSWORD HERE]
+Password updated successfully!
+Reloading privilege tables..
+... Success!
+By default, a MariaDB installation has an anonymous user, allowing anyone
+to log into MariaDB without having to have a user account created for
+them. This is intended only for testing, and to make the installation
+go a bit smoother. You should remove them before moving into a
+production environment.
+Remove anonymous users? [Y/n] y
+... Success!
+Normally, root should only be allowed to connect from &amp;#39;localhost&amp;#39;. This
+ensures that someone cannot guess at the root password from the network.
+Disallow root login remotely? [Y/n] y
+... Success!
+By default, MariaDB comes with a database named &amp;#39;test&amp;#39; that anyone can
+access. This is also intended only for testing, and should be removed
+before moving into a production environment.
+Remove test database and access to it? [Y/n] y
+- Dropping test database...
+... Success!
+- Removing privileges on test database...
+... Success!
+Reloading the privilege tables will ensure that all changes made so far
+will take effect immediately.
+Reload privilege tables now? [Y/n] y
+... Success!
+Cleaning up...
+All done! If you&amp;#39;ve completed all of the above steps, your MariaDB
+installation should now be secure.
+Thanks for using MariaDB!
+&lt;/code>&lt;/pre>&lt;h1 id="install-seafile-deps">Install Seafile Deps&lt;/h1>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>dnf install wget python3 python3-setuptools python3-pip python3-devel mariadb-devel gcc &lt;span style="color:#ae81ff">\
 &lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span>python3-pillow python3-pylibmc python3-jinja2 python3-sqlalchemy &lt;span style="color:#ae81ff">\
 &lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#ae81ff">&lt;/span>python3-pylibmc python3-ldap python3-mysqlclient python3-pycryptodomex &lt;span style="color:#ae81ff">\
