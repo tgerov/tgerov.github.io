@@ -1,5 +1,5 @@
 +++
-title = "How to Configure Bridge on Bond With Networkmanager"
+title = "How to Configure Bridge on Bond With NetworkManager"
 date = "2022-12-13T16:42:19+02:00"
 author = "Tsvetan Gerov"
 authorTwitter = ""
